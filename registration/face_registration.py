@@ -10,7 +10,7 @@ from config import KNOWN_FACES_DIR
 class FaceRegistration:
     """
     Handles registration of a person's face by capturing
-    and saving cropped face images.
+    and saving full webcam frames.
     """
 
     def __init__(self, person_name: str):
@@ -18,50 +18,53 @@ class FaceRegistration:
         self.webcam = Webcam()
         self.detector = FaceDetector()
 
-    def create_person_folder(self) -> Path:
+    def create_person_directory(self) -> Path:
         """
-        Create the folder for the person if it doesn't exist.
+        Create the directory for the person if it doesn't exist.
         """
-        person_folder = KNOWN_FACES_DIR / self.person_name
-        person_folder.mkdir(parents=True, exist_ok=True)
-        return person_folder
+        person_directory = KNOWN_FACES_DIR / self.person_name
+        person_directory.mkdir(parents=True, exist_ok=True)
+        return person_directory
 
-    def get_next_image_number(self, person_folder: Path) -> int:
+    def get_next_frame_number(self, person_directory: Path) -> int:
         """
-        Returns the next image number based on existing images.
+        Returns the next frame number.
+
         Example:
-            001.jpg
-            002.jpg
-            003.jpg
-        Returns 4.
-        """
-        images = list(person_folder.glob("*.jpg"))
-        return len(images) + 1
+            frame_001.jpg
+            frame_002.jpg
+            frame_003.jpg
 
-    def save_face(self, face, person_folder: Path):
+        Returns:
+            4
         """
-        Save the cropped face image.
+        frames = list(person_directory.glob("frame_*.jpg"))
+        return len(frames) + 1
+
+    def save_frame(self, frame, person_directory: Path):
         """
-        image_number = self.get_next_image_number(person_folder)
+        Save the full webcam frame.
+        """
+        frame_number = self.get_next_frame_number(person_directory)
 
-        image_name = f"{image_number:03}.jpg"
-        image_path = person_folder / image_name
+        image_name = f"frame_{frame_number:03}.jpg"
+        image_path = person_directory / image_name
 
-        success = cv2.imwrite(str(image_path), face)
+        success = cv2.imwrite(str(image_path), frame)
 
         if success:
-            print(f"✅ Saved: {image_path}")
+            print(f"✅ Saved: {image_name}")
         else:
-            print("❌ Failed to save image.")
+            print("❌ Failed to save frame.")
 
     def start(self):
         """
         Start face registration.
         """
-        person_folder = self.create_person_folder()
+        person_directory = self.create_person_directory()
 
         print(f"\nRegistering: {self.person_name}")
-        print("SPACE → Capture Face")
+        print("SPACE → Capture Frame")
         print("Q → Quit\n")
 
         self.webcam.open()
@@ -85,11 +88,7 @@ class FaceRegistration:
                 if key == ord(" "):
 
                     if len(faces) == 1:
-                        x, y, w, h = faces[0]
-
-                        face = frame[y:y + h, x:x + w]
-
-                        self.save_face(face, person_folder)
+                        self.save_frame(frame, person_directory)
 
                     elif len(faces) == 0:
                         print("⚠ No face detected.")
