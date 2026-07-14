@@ -22,3 +22,16 @@ class FaceDetector:
         )
 
         return faces
+
+    def draw_faces(self, frame, faces):
+        """
+        Draw a green rectangle around each detected face.
+        """
+        for (x, y, w, h) in faces:
+            cv2.rectangle(
+                frame,
+                (x, y),
+                (x + w, y + h),
+                (0, 255, 0),
+                2,
+            )
