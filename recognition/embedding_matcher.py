@@ -1,11 +1,15 @@
 import numpy as np
 
+from recognition.recognition_result import RecognitionResult
 
-class FaceMatcher:
+
+class EmbeddingMatcher:
+
     def __init__(self, threshold=0.6):
         self.threshold = threshold
 
     def cosine_similarity(self, embedding1, embedding2):
+
         embedding1 = np.asarray(embedding1)
         embedding2 = np.asarray(embedding2)
 
@@ -31,7 +35,10 @@ class FaceMatcher:
                     best_score = score
                     best_name = person_name
 
-        if best_score >= self.threshold:
-            return best_name, best_score
+        is_known = best_score >= self.threshold
 
-        return "Unknown", best_score
+        return RecognitionResult(
+            name=best_name if is_known else "Unknown",
+            score=best_score,
+            is_known=is_known,
+        )

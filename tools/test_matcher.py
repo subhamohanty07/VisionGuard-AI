@@ -1,7 +1,7 @@
 import numpy as np
 
 from recognition.face_database import FaceDatabase
-from recognition.matcher import FaceMatcher
+from recognition.embedding_matcher import FaceMatcher
 
 
 def main():
