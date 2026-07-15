@@ -1,13 +1,10 @@
-from pathlib import Path
-
-import cv2
 import numpy as np
 from insightface.app import FaceAnalysis
 
 
 class FaceEncoder:
     """
-    Generates face embeddings using InsightFace.
+    Face detection + embedding generation using InsightFace.
     """
 
     def __init__(self):
@@ -22,15 +19,22 @@ class FaceEncoder:
             det_size=(640, 640),
         )
 
-    def encode(self, image: np.ndarray):
+    def detect(self, image: np.ndarray):
         """
-        Returns the embedding of a single face.
+        Detect all faces in an image.
 
         Returns:
-            numpy.ndarray | None
+            list[Face]
+        """
+        return self.app.get(image)
+
+    def encode(self, image: np.ndarray):
+        """
+        Returns the embedding when exactly one face is present.
+        Used during registration/database generation.
         """
 
-        faces = self.app.get(image)
+        faces = self.detect(image)
 
         if len(faces) != 1:
             return None
