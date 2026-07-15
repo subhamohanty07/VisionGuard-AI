@@ -7,3 +7,6 @@ STORAGE_DIR = BASE_DIR / "storage"
 KNOWN_FACES_DIR = STORAGE_DIR / "known_faces"
 
 HAAR_CASCADE_PATH = MODELS_DIR / "haarcascade_frontalface_default.xml"
+
+UNKNOWN_FACES_DIR = STORAGE_DIR / "unknown_faces"
+UNKNOWN_FACES_DIR.mkdir(parents=True, exist_ok=True)

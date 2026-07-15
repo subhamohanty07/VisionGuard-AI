@@ -34,9 +34,13 @@ class FaceRecognizer:
                 face.embedding,
                 self.database.get_all(),
             )
-            self.event_manager.handle(result)
 
             result.bbox = tuple(map(int, face.bbox))
+
+            self.event_manager.handle(
+                result,
+                frame,
+            )
 
             results.append(result)
 
