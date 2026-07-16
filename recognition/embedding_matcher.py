@@ -1,11 +1,12 @@
 import numpy as np
 
 from recognition.recognition_result import RecognitionResult
+from config import FACE_MATCH_THRESHOLD
 
 
 class EmbeddingMatcher:
 
-    def __init__(self, threshold=0.6):
+    def __init__(self, threshold=FACE_MATCH_THRESHOLD):
         self.threshold = threshold
 
     def cosine_similarity(self, embedding1, embedding2):

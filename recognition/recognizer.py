@@ -5,6 +5,7 @@ from recognition.face_encoder import FaceEncoder
 from recognition.face_database import FaceDatabase
 from recognition.embedding_matcher import EmbeddingMatcher
 from events.event_manager import EventManager
+from config import RECOGNITION_INTERVAL
 
 
 class FaceRecognizer:
@@ -37,12 +38,22 @@ class FaceRecognizer:
 
             result.bbox = tuple(map(int, face.bbox))
 
-            self.event_manager.handle(
-                result,
-                frame,
-            )
-
             results.append(result)
+
+        # --------------------------------------------------
+        # Is there any unknown person in this frame?
+        # --------------------------------------------------
+        unknown_present = any(
+            not result.is_known
+            for result in results
+        )
+
+        # Update the event system once per frame
+        self.event_manager.handle(
+            unknown_present,
+            results,
+            frame,
+        )
 
         return results
 
@@ -61,7 +72,7 @@ class FaceRecognizer:
 
                 self.frame_counter += 1
 
-                if self.frame_counter % 5 == 0:
+                if self.frame_counter % RECOGNITION_INTERVAL == 0:
                     self.cached_results = self.recognize(frame)
 
                 for result in self.cached_results:

@@ -1,26 +1,42 @@
 from datetime import datetime, timedelta
 
+from config import SESSION_TIMEOUT_SECONDS
 from events.session import Session
+from events.session_state import SessionState
 
 
 class SessionManager:
+    """
+    Manages the lifecycle of an unknown person session.
+    """
 
     def __init__(self):
-
         self.current_session = None
+        self.last_completed_session = None
 
         self.next_session_id = 1
 
-        self.session_timeout = timedelta(seconds=10)
+        self.session_timeout = timedelta(
+            seconds=SESSION_TIMEOUT_SECONDS
+        )
 
-    def update(self, unknown_detected: bool):
+    def update(self, unknown_present: bool):
+        """
+        Updates the current session based on whether an unknown
+        person is currently visible.
+
+        Returns:
+            SessionState
+        """
 
         now = datetime.now()
 
+        # --------------------------------------------------
         # No active session
+        # --------------------------------------------------
         if self.current_session is None:
 
-            if unknown_detected:
+            if unknown_present:
 
                 self.current_session = Session(
                     session_id=self.next_session_id,
@@ -30,24 +46,31 @@ class SessionManager:
 
                 self.next_session_id += 1
 
-                return "SESSION_STARTED"
+                return SessionState.STARTED
 
-            return "NO_SESSION"
+            return SessionState.NO_SESSION
 
+        # --------------------------------------------------
         # Active session exists
-        if unknown_detected:
+        # --------------------------------------------------
+        if unknown_present:
 
             self.current_session.last_seen = now
 
-            return "SESSION_ACTIVE"
+            return SessionState.ACTIVE
 
-        # Check timeout
+        # --------------------------------------------------
+        # Unknown person disappeared
+        # --------------------------------------------------
         if now - self.current_session.last_seen > self.session_timeout:
 
             self.current_session.active = False
 
+            # Save completed session before clearing it
+            self.last_completed_session = self.current_session
+
             self.current_session = None
 
-            return "SESSION_ENDED"
+            return SessionState.ENDED
 
-        return "SESSION_ACTIVE"
+        return SessionState.ACTIVE
