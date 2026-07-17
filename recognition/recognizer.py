@@ -1,14 +1,23 @@
 import cv2
 
 from camera.webcam import Webcam
-from recognition.face_encoder import FaceEncoder
-from recognition.face_database import FaceDatabase
-from recognition.embedding_matcher import EmbeddingMatcher
+from config import (
+    APP_NAME,
+    BOX_THICKNESS,
+    FONT_SCALE,
+    FONT_THICKNESS,
+    RECOGNITION_INTERVAL,
+)
 from events.event_manager import EventManager
-from config import RECOGNITION_INTERVAL
+from recognition.embedding_matcher import EmbeddingMatcher
+from recognition.face_database import FaceDatabase
+from recognition.face_encoder import FaceEncoder
 
 
 class FaceRecognizer:
+    """
+    Main face recognition pipeline.
+    """
 
     def __init__(self):
 
@@ -24,6 +33,9 @@ class FaceRecognizer:
         self.cached_results = []
 
     def recognize(self, frame):
+        """
+        Recognize all faces in the current frame.
+        """
 
         detected_faces = self.encoder.detect(frame)
 
@@ -40,15 +52,11 @@ class FaceRecognizer:
 
             results.append(result)
 
-        # --------------------------------------------------
-        # Is there any unknown person in this frame?
-        # --------------------------------------------------
         unknown_present = any(
             not result.is_known
             for result in results
         )
 
-        # Update the event system once per frame
         self.event_manager.handle(
             unknown_present,
             results,
@@ -57,7 +65,46 @@ class FaceRecognizer:
 
         return results
 
+    def draw_results(self, frame):
+        """
+        Draw recognition results on the frame.
+        """
+
+        for result in self.cached_results:
+
+            if result.bbox is None:
+                continue
+
+            x1, y1, x2, y2 = result.bbox
+
+            color = (
+                (0, 255, 0)
+                if result.is_known
+                else (0, 0, 255)
+            )
+
+            cv2.rectangle(
+                frame,
+                (x1, y1),
+                (x2, y2),
+                color,
+                BOX_THICKNESS,
+            )
+
+            cv2.putText(
+                frame,
+                f"{result.name} ({result.score:.2f})",
+                (x1, y1 - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                FONT_SCALE,
+                color,
+                FONT_THICKNESS,
+            )
+
     def start(self):
+        """
+        Start the recognition loop.
+        """
 
         self.webcam.open()
 
@@ -72,37 +119,21 @@ class FaceRecognizer:
 
                 self.frame_counter += 1
 
-                if self.frame_counter % RECOGNITION_INTERVAL == 0:
+                if (
+                    self.frame_counter
+                    % RECOGNITION_INTERVAL
+                    == 0
+                ):
                     self.cached_results = self.recognize(frame)
 
-                for result in self.cached_results:
+                self.draw_results(frame)
 
-                    x1, y1, x2, y2 = result.bbox
-
-                    color = (0, 255, 0) if result.is_known else (0, 0, 255)
-
-                    cv2.rectangle(
-                        frame,
-                        (x1, y1),
-                        (x2, y2),
-                        color,
-                        2,
-                    )
-
-                    cv2.putText(
-                        frame,
-                        f"{result.name} ({result.score:.2f})",
-                        (x1, y1 - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.7,
-                        color,
-                        2,
-                    )
-
-                cv2.imshow("VisionGuard AI", frame)
+                cv2.imshow(APP_NAME, frame)
 
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
         finally:
+
             self.webcam.release()
+            cv2.destroyAllWindows()

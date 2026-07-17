@@ -22,15 +22,16 @@ class TelegramAlert:
         if not self.chat_id:
             raise ValueError("TELEGRAM_CHAT_ID not found in .env")
 
+        self.base_url = (
+            f"https://api.telegram.org/bot{self.bot_token}"
+        )
+
     def send_message(self, message: str):
         """
         Send a text message to Telegram.
         """
 
-        url = (
-            f"https://api.telegram.org/bot"
-            f"{self.bot_token}/sendMessage"
-        )
+        url = f"{self.base_url}/sendMessage"
 
         payload = {
             "chat_id": self.chat_id,
@@ -38,6 +39,7 @@ class TelegramAlert:
         }
 
         try:
+
             response = requests.post(
                 url,
                 data=payload,
@@ -49,7 +51,9 @@ class TelegramAlert:
             return response.json()
 
         except requests.RequestException as e:
+
             print(f"[Telegram] Failed to send message: {e}")
+
             return None
 
     def send_photo(self, image_path: str, caption: str = ""):
@@ -57,12 +61,10 @@ class TelegramAlert:
         Send a photo with an optional caption.
         """
 
-        url = (
-            f"https://api.telegram.org/bot"
-            f"{self.bot_token}/sendPhoto"
-        )
+        url = f"{self.base_url}/sendPhoto"
 
         try:
+
             with open(image_path, "rb") as photo:
 
                 response = requests.post(
@@ -82,11 +84,15 @@ class TelegramAlert:
             return response.json()
 
         except FileNotFoundError:
+
             print(f"[Telegram] Image not found: {image_path}")
+
             return None
 
         except requests.RequestException as e:
+
             print(f"[Telegram] Failed to send photo: {e}")
+
             return None
 
     def send_unknown_person_alert(self, event):
