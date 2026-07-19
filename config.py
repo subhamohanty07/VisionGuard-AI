@@ -56,3 +56,4 @@ ENABLE_TELEGRAM_ALERTS = True
 
 APP_NAME = "VisionGuard AI"
 VERSION = "0.6"
+

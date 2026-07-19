@@ -1,13 +1,12 @@
 import cv2
 
 from camera.webcam import Webcam
+
 from config import (
     APP_NAME,
-    BOX_THICKNESS,
-    FONT_SCALE,
-    FONT_THICKNESS,
     RECOGNITION_INTERVAL,
 )
+
 from events.event_manager import EventManager
 from recognition.embedding_matcher import EmbeddingMatcher
 from recognition.face_database import FaceDatabase
@@ -88,7 +87,7 @@ class FaceRecognizer:
                 (x1, y1),
                 (x2, y2),
                 color,
-                BOX_THICKNESS,
+                2,
             )
 
             cv2.putText(
@@ -96,9 +95,9 @@ class FaceRecognizer:
                 f"{result.name} ({result.score:.2f})",
                 (x1, y1 - 10),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                FONT_SCALE,
+                0.7,
                 color,
-                FONT_THICKNESS,
+                2,
             )
 
     def start(self):
